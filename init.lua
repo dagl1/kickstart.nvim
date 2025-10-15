@@ -110,12 +110,18 @@ vim.o.mouse = 'a'
 -- Don't show the mode, since it's already in the status line
 vim.o.showmode = false
 
+-- custom added by Dagl
 vim.opt.textwidth = 80
 vim.opt.wrap = true
 vim.opt.linebreak = true
 vim.opt.formatoptions:append("t")
 vim.opt.wildmenu = true
 vim.opt.wildmode = "list:longest"
+vim.api.nvim_set_keymap('n', '<C-CR>', ':m .+1<CR>==', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('v', '<C-CR>', ":m '>+1<CR>gv=gv", { noremap = true, silent = true })
+vim.opt.showtabline = 2
+
+-- end custom additions
 
 
 
@@ -127,10 +133,10 @@ vim.schedule(function()
   vim.o.clipboard = 'unnamedplus'
 end)
 
--- Enable break indent
+-- enable break indent
 vim.o.breakindent = true
 
--- Save undo history
+-- save undo history
 vim.o.undofile = true
 
 -- Case-insensitive searching UNLESS \C or one or more capital letters in the search term
@@ -168,7 +174,7 @@ vim.o.inccommand = 'split'
 vim.o.cursorline = true
 
 -- Minimal number of screen lines to keep above and below the cursor.
-vim.o.scrolloff = 10
+vim.o.scrolloff = 15
 
 -- if performing an operation that would fail due to unsaved changes in the buffer (like `:q`),
 -- instead raise a dialog asking if you wish to save the current file(s)
@@ -748,10 +754,26 @@ require('lazy').setup({
       config = function()
         require('zen-mode').setup {
           window = {
-            width = 0.8,
-            options = { number = true, relativenumber = true },
+            width = 0.6,
+            options = {
+              number = true,
+              relativenumber = true,
+              -- signcolumn = "no",
+              showtabline = 2,
+            },
           },
+          -- plugins = { 
+          --   tmux = true,
+          --   kitty = {
+          --     enabled = false,
+          --     font = "+4",
+          --   },
+          -- },
+          on_open = function(win)
+
+          end,
         }
+
         vim.api.nvim_create_autocmd("VimEnter", {
           callback = function()
             local ok, zen = pcall(require, "zen-mode")
@@ -939,6 +961,7 @@ require('lazy').setup({
       --  - va)  - [V]isually select [A]round [)]paren
       --  - yinq - [Y]ank [I]nside [N]ext [Q]uote
       --  - ci'  - [C]hange [I]nside [']quote
+      
       require('mini.ai').setup { n_lines = 500 }
 
       -- Add/delete/replace surroundings (brackets, quotes, etc.)
@@ -1063,15 +1086,39 @@ if ok then
 end
 local opts = { noremap = true, silent = true }
 
+
 -- <Space> -> b
 vim.api.nvim_set_keymap("n", "<Space>", "b", opts)
-
 -- <S-Space> -> B
 vim.api.nvim_set_keymap("n", "<S-Space>", "B", opts)
 
--- Shift+Enter -> k^ (up one line + move to first non-blank)
-vim.api.nvim_set_keymap("n", "<S-CR>", "k^", opts)
+if vim.g.neovide then
+  -- Turn off cursor animation
+  vim.g.neovide_cursor_animate_command_line = false
+  vim.g.neovide_cursor_animate_in_insert_mode = false
+  vim.g.neovide_cursor_animate_snippet = false
 
+  -- Disable smooth scrolling / general animation
+  vim.g.neovide_scroll_animation_length = 0.0
 
+  -- Disable fancy font scaling animation
+  vim.g.neovide_floating_blur_amount_x = 0.0
+  vim.g.neovide_floating_blur_amount_y = 0.0
+
+  -- Optional: make the GUI instant without delays
+  vim.g.neovide_refresh_rate = 60
+end
+vim.g.neovide_cursor_vfx_mode = ""  -- disables the particles and trail
+vim.g.neovide_cursor_antialiasing = true
+vim.g.neovide_transparency = 1.0        -- no transparency lag
+vim.g.neovide_no_idle = true            -- prevents frame smoothing
+vim.g.neovide_position_animation_length = 0
+vim.g.neovide_cursor_animation_length = 0.00
+vim.g.neovide_cursor_trail_size = 0
+vim.g.neovide_cursor_animate_in_insert_mode = false
+vim.g.neovide_cursor_animate_command_line = false
+vim.g.neovide_scroll_animation_far_lines = 0
+vim.g.neovide_scroll_animation_length = 0.00
+vim.g.neovide_input_use_logo = true     -- optional, for Windows key mappings
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
