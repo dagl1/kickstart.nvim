@@ -61,7 +61,7 @@ Kickstart Guide:
     about reading, navigating and searching the builtin help documentation.
 
     This should be the first place you go to look when you're stuck or confused
-    with something. It's one of my favorite Neovim features.
+    w:ith something. It's one of my favorite Neovim features.
 
     MOST IMPORTANTLY, we provide a keymap "<space>sh" to [s]earch the [h]elp documentation,
     which is very useful when you're not exactly sure of what you're looking for.
@@ -87,8 +87,8 @@ P.S. You can delete this when you're done too. It's your config now! :)
 -- Set <space> as the leader key
 -- See `:help mapleader`
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
-vim.g.mapleader = ' '
-vim.g.maplocalleader = ' '
+vim.g.mapleader = ','
+vim.g.maplocalleader = ','
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = false
@@ -102,13 +102,22 @@ vim.g.have_nerd_font = false
 vim.o.number = true
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
--- vim.o.relativenumber = true
+vim.o.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.o.mouse = 'a'
 
 -- Don't show the mode, since it's already in the status line
 vim.o.showmode = false
+
+vim.opt.textwidth = 80
+vim.opt.wrap = true
+vim.opt.linebreak = true
+vim.opt.formatoptions:append("t")
+vim.opt.wildmenu = true
+vim.opt.wildmode = "list:longest"
+
+
 
 -- Sync clipboard between OS and Neovim.
 --  Schedule the setting after `UiEnter` because it can increase startup-time.
@@ -734,6 +743,26 @@ require('lazy').setup({
         },
       }
     end,
+    {
+      'folke/zen-mode.nvim',
+      config = function()
+        require('zen-mode').setup {
+          window = {
+            width = 0.8,
+            options = { number = true, relativenumber = true },
+          },
+        }
+        vim.api.nvim_create_autocmd("VimEnter", {
+          callback = function()
+            local ok, zen = pcall(require, "zen-mode")
+            if ok then 
+              zen.open()
+            end
+            require("zen-mode").toggle()
+          end,
+        })
+      end,
+    },
   },
 
   { -- Autoformat
@@ -979,6 +1008,8 @@ require('lazy').setup({
   -- require 'kickstart.plugins.autopairs',
   -- require 'kickstart.plugins.neo-tree',
   -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
+  -- require("zen-mode").setup({
+  --
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
@@ -1011,6 +1042,36 @@ require('lazy').setup({
     },
   },
 })
+
+local ok, null_ls = pcall(require, "null-ls")
+if ok then
+    null_ls.setup({
+        sources = {
+            null_ls.builtins.formatting.stylua,  -- Lua formatter
+        },
+        on_attach = function(client)
+            if client.supports_method("textDocument/formatting") then
+                vim.cmd([[
+                    augroup LspFormatting
+                        autocmd! * <buffer>
+                        autocmd BufWritePre <buffer> lua vim.lsp.buf.format({ async = false })
+                    augroup END
+                ]])
+            end
+        end,
+    })
+end
+local opts = { noremap = true, silent = true }
+
+-- <Space> -> b
+vim.api.nvim_set_keymap("n", "<Space>", "b", opts)
+
+-- <S-Space> -> B
+vim.api.nvim_set_keymap("n", "<S-Space>", "B", opts)
+
+-- Shift+Enter -> k^ (up one line + move to first non-blank)
+vim.api.nvim_set_keymap("n", "<S-CR>", "k^", opts)
+
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
